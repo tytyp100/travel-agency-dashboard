@@ -6,10 +6,7 @@ import path from 'path'; // Add this import
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
-  resolve: {
-    alias: {
-      // Add this alias to help Vite find Syncfusion files
-      '@syncfusion': path.resolve(__dirname, 'node_modules/@syncfusion')
-    }
+  ssr: {
+    noExternal: [/@syncfusion/]
   }
 });
