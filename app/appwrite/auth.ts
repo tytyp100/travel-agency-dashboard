@@ -1,4 +1,4 @@
-import { ID, OAuthProvider, Query } from "appwrite";
+import { Databases, ID, OAuthProvider, Query } from "appwrite";
 import { account, database, appwriteConfig } from "~/appwrite/client";
 import { redirect } from "react-router";
 
@@ -36,18 +36,12 @@ export const storeUserData = async () => {
         name: user.name,
         imageUrl: profilePicture,
         joinedAt: new Date().toISOString(),
-        status: "user"
       }
     );
 
-    if (!createdUser.$id) {
-      throw new Error("Failed to create user document");
-    }
-
-    return createdUser;
+    if (!createdUser.$id) redirect("/sign-in");
   } catch (error) {
     console.error("Error storing user data:", error);
-    throw error;
   }
 };
 
@@ -105,5 +99,29 @@ export const getUser = async () => {
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;
+  }
+};
+
+export const getAllUsers = async (limit: number, offset: number) => {
+  try {
+    const { documents: users, total } = await database.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.userCollectionId,
+        [Query.limit(limit), Query.offset(offset)]
+    )
+
+    if (total === 0) return {
+        users: [],
+        total
+    };
+
+    return {users, total};
+    
+  } catch (error) {
+    console.log('Error fetching useres');
+    return {
+      users: [],
+      total: 0,
+    };
   }
 };

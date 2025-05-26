@@ -7,8 +7,17 @@ import {
 } from "@syncfusion/ej2-react-grids";
 import { users } from "~/constants";
 import { cn } from "~/lib/utils";
+import { getAllUsers } from "~/appwrite/auth";
+import type { Route } from "./+types/all-users";
+import { formatDate } from "~/lib/utils";
 
-const AllUsers = () => {
+export const loader = async () => {
+  const { users, total } = await getAllUsers(10, 0);
+  return { users, total };
+};
+
+const AllUsers = ({ loaderData }: Route.ComponentProps) => {
+  const { users } = loaderData;
   return (
     <main className="all-users wrapper">
       <Header
@@ -36,20 +45,17 @@ const AllUsers = () => {
           <ColumnDirective
             field="email"
             headerText="Email"
-            width="150"
+            width="200"
             textAlign="Left"
           />
           <ColumnDirective
-            field="dateJoined"
+            field="joinedAt"
             headerText="Date Joined"
-            width="120"
+            width="140"
             textAlign="Left"
-          />
-          <ColumnDirective
-            field="itineraryCreated"
-            headerText="Trip Created"
-            width="130"
-            textAlign="Left"
+            template={({ joinedAt }: { joinedAt: string }) =>
+              formatDate(joinedAt)
+            }
           />
           <ColumnDirective
             field="status"
