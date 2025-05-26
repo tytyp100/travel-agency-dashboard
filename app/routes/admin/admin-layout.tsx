@@ -8,21 +8,17 @@ import { getExistingUser, storeUserData } from "~/appwrite/auth";
 
 export async function clientLoader() {
   try {
-    console.log("PART 0");
     const user = await account.get();
-    console.log("PART 0.5");
     if (!user.$id) {
       return redirect("/sign-in");
     }
-    console.log("PART 1");
     const existingUser = await getExistingUser(user.$id);
-    console.log("PART 2");
     if (existingUser?.status === "user") {
       return redirect("/");
     }
-    return existingUser?.$id ? existingUser : await storeUserData;
+    return existingUser?.$id ? existingUser : await storeUserData();
   } catch (e) {
-    console.log("Error in clientLoader ", e);
+    console.error("Error in clientLoader:", e);
     return redirect("/sign-in");
   }
 }

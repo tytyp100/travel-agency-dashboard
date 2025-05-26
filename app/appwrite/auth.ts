@@ -36,12 +36,18 @@ export const storeUserData = async () => {
         name: user.name,
         imageUrl: profilePicture,
         joinedAt: new Date().toISOString(),
+        status: "user"
       }
     );
 
-    if (!createdUser.$id) redirect("/sign-in");
+    if (!createdUser.$id) {
+      throw new Error("Failed to create user document");
+    }
+
+    return createdUser;
   } catch (error) {
     console.error("Error storing user data:", error);
+    throw error;
   }
 };
 
