@@ -25,7 +25,7 @@ const MobileSidebar = () => {
         </Link>
 
         <button onClick={() => toggleSidebar()}>
-          <img src="assets/icons/menu.svg" alt="menu" className="size-7" />
+          <img src="/assets/icons/menu.svg" alt="menu" className="size-7" />
         </button>
       </header>
       <SidebarComponent
