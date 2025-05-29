@@ -125,3 +125,29 @@ export const getAllUsers = async (limit: number, offset: number) => {
     };
   }
 };
+
+export const becomeAdmin = async () => {
+  try {
+    const user = await account.get();
+    if (!user) return redirect("/sign-in");
+    const {documents} = await database.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.userCollectionId,
+        [
+            Query.equal("accountId", user.$id),
+        ]
+    );
+    if (documents.length === 0) return redirect("/sign-in");
+    const userDoc = documents[0];
+    const updatedUser = await database.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.userCollectionId,
+        userDoc.$id,
+        {status: "admin"}
+    )
+    return updatedUser;
+  } catch (error) {
+    console.error("Error becoming admin:", error);
+    return null;
+  }
+};

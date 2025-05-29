@@ -1,27 +1,72 @@
 import React from "react";
-import { useNavigate } from "react-router";
-import { logoutUser } from "~/appwrite/auth";
+import { Link, redirect, useNavigate } from "react-router";
+import { getUser, logoutUser, becomeAdmin } from "~/appwrite/auth";
+import type { Route } from "./+types/page-layout";
 
-const PageLayout = () => {
+export const clientLoader = async () => {
+  return await getUser();
+};
+
+const PageLayout = ({ loaderData }: Route.ComponentProps) => {
+  const user = loaderData?.user as User | null;
   const navigate = useNavigate();
   const handleLogout = async () => {
     await logoutUser();
     navigate("/sign-in");
   };
+  const handleAdmin = async () => {
+    becomeAdmin();
+  };
   return (
-    <div>
-      {" "}
-      <button onClick={handleLogout} className="cursor-pointer">
-        <img src="/assets/icons/logout.svg" alt="logout" className="size-6" />
-      </button>
-      <button
-        onClick={() => {
-          navigate("/dashboard");
-        }}
+    <main className="min-h-screen flex flex-col">
+      {/* Hero Section with full background image */}
+      <section
+        className="flex-1 bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center text-white text-center px-4 py-16 relative"
+        style={{ backgroundImage: "url('/assets/images/hero-img.png')" }}
       >
-        Dashboard
-      </button>
-    </div>
+        {/* Navigation bar positioned absolutely at the top */}
+        <div className="absolute top-0 left-0 w-full p-4">
+          <Link to="/" className="flex items-center gap-3 w-fit">
+            <img
+              src="/assets/icons/logo.svg"
+              alt="logo"
+              className="size-[30px]"
+            />
+            <h1 className="p-28-bold text-white">Tourvisto</h1>
+          </Link>
+        </div>
+
+        <article className="max-w-xl bg-black/50 p-6 rounded-2xl shadow-lg">
+          <h2 className="text-3xl font-bold mb-4">Welcome to Tourvisto</h2>
+          <p className="mb-6 text-lg">
+            Tourvisto is a platform that allows you to create your own
+            personalized travel plans using AI!
+          </p>
+
+          {/* Centered Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="bg-white text-black px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-200 transition"
+            >
+              Go to Dashboard
+            </button>
+            <button
+              onClick={handleAdmin}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+            >
+              Become Admin
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-red-700 transition"
+            >
+              Log Out
+            </button>
+          </div>
+        </article>
+      </section>
+    </main>
   );
 };
 
