@@ -1,14 +1,36 @@
 import React from "react";
 import { Link, redirect, useNavigate } from "react-router";
-import { getUser, logoutUser, becomeAdmin } from "~/appwrite/auth";
-import type { Route } from "./+types/page-layout";
+import {
+  getUser,
+  logoutUser,
+  becomeAdmin,
+  displayStatus,
+} from "~/appwrite/auth";
 
-export const clientLoader = async () => {
-  return await getUser();
+type User = {
+  name: string;
+  email: string;
+  imageUrl: string | null;
+  joinedAt: string;
+  accountId: string;
 };
 
-const PageLayout = ({ loaderData }: Route.ComponentProps) => {
-  const user = loaderData?.user as User | null;
+type LoaderData = {
+  user: User | null;
+  status: string | null;
+};
+
+export const clientLoader = async () => {
+  const userData = await getUser();
+  const status = await displayStatus();
+  return { user: userData, status };
+};
+
+const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
+  const user = loaderData?.user;
+  const status = loaderData?.status;
+  console.log("User data:", user);
+  console.log("Status:", status);
   const navigate = useNavigate();
   const handleLogout = async () => {
     await logoutUser();
@@ -39,8 +61,11 @@ const PageLayout = ({ loaderData }: Route.ComponentProps) => {
         <article className="max-w-xl bg-black/50 p-6 rounded-2xl shadow-lg">
           <h2 className="text-3xl font-bold mb-4">Welcome to Tourvisto</h2>
           <p className="mb-6 text-lg">
-            Tourvisto is a platform that allows you to create your own
-            personalized travel plans using AI!
+            {`Welcome ${user?.name}! Tourvisto is a platform that allows you to create your own
+            personalized travel plans using AI!`}
+          </p>
+          <p className="mb-6 text-lg">
+            {`You are currently logged in as a ${status}! You may access the dashboard if you are an admin.`}
           </p>
 
           {/* Centered Buttons */}
