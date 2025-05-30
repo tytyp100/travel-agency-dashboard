@@ -5,6 +5,7 @@ import { MobileSidebar, NavItems } from "../../components";
 import { account } from "~/appwrite/client";
 import { redirect } from "react-router";
 import { getExistingUser, storeUserData } from "~/appwrite/auth";
+import type { Models } from "appwrite";
 
 export async function clientLoader() {
   try {
@@ -12,11 +13,24 @@ export async function clientLoader() {
     if (!user.$id) {
       return redirect("/sign-in");
     }
-    const existingUser = await getExistingUser(user.$id);
-    if (existingUser?.status === "user") {
+
+    let existingUser = await getExistingUser(user.$id);
+
+    // If user doesn't exist, create them first
+    if (!existingUser?.$id) {
+      const newUser = await storeUserData();
+      if (!newUser) {
+        return redirect("/sign-in");
+      }
+      existingUser = newUser;
+    }
+
+    // Now check status - this ensures we check even after creating a new user
+    if (!existingUser || existingUser.status === "user") {
       return redirect("/");
     }
-    return existingUser?.$id ? existingUser : await storeUserData();
+
+    return existingUser;
   } catch (e) {
     console.error("Error in clientLoader:", e);
     return redirect("/sign-in");

@@ -36,12 +36,18 @@ export const storeUserData = async () => {
         name: user.name,
         imageUrl: profilePicture,
         joinedAt: new Date().toISOString(),
+        status: "user"
       }
     );
 
-    if (!createdUser.$id) redirect("/sign-in");
+    if (!createdUser.$id) {
+      throw new Error("Failed to create user");
+    }
+    
+    return createdUser;
   } catch (error) {
     console.error("Error storing user data:", error);
+    return null;
   }
 };
 
@@ -151,3 +157,23 @@ export const becomeAdmin = async () => {
     return null;
   }
 };
+
+export const displayStatus = async() => {
+    try{
+        const user = await account.get();
+        if (!user) return redirect("/sign-in");
+        const {documents} = await database.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.userCollectionId,
+            [
+                Query.equal("accountId", user.$id),
+                Query.select(["status"]),
+            ]
+            
+        )
+        return documents.length > 0 ? documents[0].status : redirect("/sign-in");
+    } catch (error) {
+        console.error("Error fetching user status:", error);
+        return null;
+    }
+}
