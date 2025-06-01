@@ -72,13 +72,15 @@ const AllUsers = ({ loaderData }: Route.ComponentProps) => {
                 <div
                   className={cn(
                     "size-1.5 rounded-full",
-                    status === "user" ? "bg-success-500" : "bg-gray-500"
+                    props.status === "user" ? "bg-success-500" : "bg-gray-500"
                   )}
                 />
                 <h3
                   className={cn(
                     "font-inter text-xs font-medium",
-                    status === "user" ? "text-success-700" : "text-gray-500"
+                    props.status === "user"
+                      ? "text-success-700"
+                      : "text-gray-500"
                   )}
                 >
                   {props.status}
