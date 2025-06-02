@@ -29,8 +29,6 @@ export const clientLoader = async () => {
 const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
   const user = loaderData?.user;
   const status = loaderData?.status;
-  console.log("User data:", user);
-  console.log("Status:", status);
   const navigate = useNavigate();
   const handleLogout = async () => {
     await logoutUser();
@@ -41,7 +39,7 @@ const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
   };
   return (
     <main className="min-h-screen flex flex-col">
-      {/* Hero Section with full background image */}
+      {/* Setting full background image */}
       <section
         className="flex-1 bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center text-white text-center px-4 py-16 relative"
         style={{ backgroundImage: "url('/assets/images/hero-img.png')" }}
