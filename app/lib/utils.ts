@@ -68,3 +68,14 @@ export const formatKey = (key: keyof TripFormData) => {
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, (str) => str.toUpperCase());
 };
+
+export const getWindow = () => {
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  return {
+    location: {
+      origin: process.env.VITE_FRONTEND_URL || 'http://localhost:3000'
+    }
+  } as Window;
+};

@@ -4,52 +4,44 @@ import { redirect } from "react-router";
 
 export const getExistingUser = async (id: string) => {
   try {
-    const { documents, total } = await database.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      [Query.equal("accountId", id)]
-    );
-    return total > 0 ? documents[0] : null;
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${id}`);
+    return await res.json();
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;
   }
 };
 
+
 export const storeUserData = async () => {
   try {
     const user = await account.get();
     if (!user) throw new Error("User not found");
 
-    const { providerAccessToken } = (await account.getSession("current")) || {};
+    const { providerAccessToken } = await account.getSession("current");
     const profilePicture = providerAccessToken
       ? await getGooglePicture(providerAccessToken)
       : null;
 
-    const createdUser = await database.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      ID.unique(),
-      {
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         accountId: user.$id,
         email: user.email,
         name: user.name,
-        imageUrl: profilePicture,
-        joinedAt: new Date().toISOString(),
-        status: "user"
-      }
-    );
+        imageUrl: profilePicture
+      }),
+    });
 
-    if (!createdUser.$id) {
-      throw new Error("Failed to create user");
-    }
-    
+    const createdUser = await res.json();
     return createdUser;
   } catch (error) {
     console.error("Error storing user data:", error);
     return null;
   }
 };
+
 
 const getGooglePicture = async (accessToken: string) => {
   try {
@@ -92,16 +84,10 @@ export const getUser = async () => {
     const user = await account.get();
     if (!user) return redirect("/sign-in");
 
-    const { documents } = await database.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      [
-        Query.equal("accountId", user.$id),
-        Query.select(["name", "email", "imageUrl", "joinedAt", "accountId"]),
-      ]
-    );
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${user.$id}`);
+    const userDoc = await res.json();
 
-    return documents.length > 0 ? documents[0] : redirect("/sign-in");
+    return userDoc || redirect("/sign-in");
   } catch (error) {
     console.error("Error fetching user:", error);
     return null;
@@ -110,11 +96,8 @@ export const getUser = async () => {
 
 export const getAllUsers = async (limit: number, offset: number) => {
   try {
-    const { documents: users, total } = await database.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.userCollectionId,
-        [Query.limit(limit), Query.offset(offset)]
-    )
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users?limit=${limit}&offset=${offset}`);
+    const { users, total } = await res.json();
 
     if (total === 0) return {
         users: [],
@@ -136,44 +119,29 @@ export const becomeAdmin = async () => {
   try {
     const user = await account.get();
     if (!user) return redirect("/sign-in");
-    const {documents} = await database.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.userCollectionId,
-        [
-            Query.equal("accountId", user.$id),
-        ]
-    );
-    if (documents.length === 0) return redirect("/sign-in");
-    const userDoc = documents[0];
-    const updatedUser = await database.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.userCollectionId,
-        userDoc.$id,
-        {status: "admin"}
-    )
-    return updatedUser;
+
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${user.$id}/admin`, {
+      method: "PATCH"
+    });
+
+    return await res.json();
   } catch (error) {
     console.error("Error becoming admin:", error);
     return null;
   }
 };
 
-export const displayStatus = async() => {
-    try{
-        const user = await account.get();
-        if (!user) return redirect("/sign-in");
-        const {documents} = await database.listDocuments(
-            appwriteConfig.databaseId,
-            appwriteConfig.userCollectionId,
-            [
-                Query.equal("accountId", user.$id),
-                Query.select(["status"]),
-            ]
-            
-        )
-        return documents.length > 0 ? documents[0].status : redirect("/sign-in");
-    } catch (error) {
-        console.error("Error fetching user status:", error);
-        return null;
-    }
-}
+export const displayStatus = async () => {
+  try {
+    const user = await account.get();
+    if (!user) return redirect("/sign-in");
+
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${user.$id}/status`);
+    const data = await res.json();
+
+    return data.status || redirect("/sign-in");
+  } catch (error) {
+    console.error("Error fetching user status:", error);
+    return null;
+  }
+};
