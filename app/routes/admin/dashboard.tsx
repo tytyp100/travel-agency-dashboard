@@ -30,21 +30,21 @@ import {
 import { tripXAxis, tripyAxis, userXAxis, useryAxis } from "~/constants";
 
 export const clientLoader = async () => {
-  const [
-    user,
-    dashboardStats,
-    trips,
-    userGrowth,
-    tripsByTravelStyle,
-    allUsers,
-  ] = await Promise.all([
-    await getUser(),
-    await getUsersAndTripsStats(),
-    await getAllTrips(4, 0),
-    await getUserGrowthPerDay(),
-    await getTripsByTravelStyle(),
-    await getAllUsers(4, 0),
-  ]);
+  const user = await getUser();
+  console.log("User in dashboard loader:", user);
+  if (!user || user.status !== "admin") {
+    throw new Response("Forbidden", { status: 403 });
+  }
+
+  // Continue loading data if admin
+  const [dashboardStats, trips, userGrowth, tripsByTravelStyle, allUsers] =
+    await Promise.all([
+      getUsersAndTripsStats(),
+      getAllTrips(4, 0),
+      getUserGrowthPerDay(),
+      getTripsByTravelStyle(),
+      getAllUsers(4, 0),
+    ]);
 
   const allTrips = trips.allTrips.map(({ $id, tripDetail, imageUrls }) => ({
     id: $id,
@@ -52,11 +52,13 @@ export const clientLoader = async () => {
     imageUrls: imageUrls ?? [],
   }));
 
-  const mappedUsers: UsersItineraryCount[] = allUsers.users.map((user) => ({
-    imageUrl: user.imageUrl,
-    name: user.name,
-    count: user.itineraryCount ?? Math.floor(Math.random() * 10),
-  }));
+  const mappedUsers: UsersItineraryCount[] = allUsers.users.map(
+    (user: any) => ({
+      imageUrl: user.imageUrl,
+      name: user.name,
+      count: user.itineraryCount ?? Math.floor(Math.random() * 10),
+    })
+  );
 
   return {
     user,

@@ -18,10 +18,19 @@ export const storeUserData = async () => {
     const user = await account.get();
     if (!user) throw new Error("User not found");
 
-    const { providerAccessToken } = await account.getSession("current");
-    const profilePicture = providerAccessToken
-      ? await getGooglePicture(providerAccessToken)
-      : null;
+    const existingUser = await getExistingUser(user.$id);
+    if (existingUser) return existingUser;
+
+    // Only try to fetch profile picture if using Google
+    let profilePicture = null;
+    try {
+      const { providerAccessToken } = await account.getSession("current");
+      if (providerAccessToken) {
+        profilePicture = await getGooglePicture(providerAccessToken);
+      }
+    } catch {
+      // Ignore Google picture errors — not critical
+    }
 
     const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user`, {
       method: "POST",
@@ -30,12 +39,11 @@ export const storeUserData = async () => {
         accountId: user.$id,
         email: user.email,
         name: user.name,
-        imageUrl: profilePicture
+        imageUrl: profilePicture,
       }),
     });
 
-    const createdUser = await res.json();
-    return createdUser;
+    return await res.json();
   } catch (error) {
     console.error("Error storing user data:", error);
     return null;
