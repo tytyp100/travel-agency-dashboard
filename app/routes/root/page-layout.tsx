@@ -21,12 +21,38 @@ type LoaderData = {
 };
 
 export const clientLoader = async () => {
-  const userData = await getUser();
-  const status = await displayStatus();
-  return { user: userData, status };
+  try {
+    const userData = await getUser();
+
+    // Handle redirect case
+    if (userData && typeof userData === "object" && userData.redirect) {
+      return redirect(userData.redirect);
+    }
+
+    // Handle successful user data
+    if (userData && userData.accountId) {
+      return {
+        user: {
+          name: userData.name,
+          email: userData.email,
+          imageUrl: userData.imageUrl,
+          joinedAt: userData.joinedAt,
+          accountId: userData.accountId,
+        },
+        status: userData.status || "user",
+      };
+    }
+
+    // Fallback to sign-in if no valid data
+    return redirect("/sign-in");
+  } catch (error) {
+    console.error("Loader error:", error);
+    return redirect("/sign-in");
+  }
 };
 
 const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
+  console.log("Full loaderData:", JSON.stringify(loaderData, null, 2));
   const user = loaderData?.user;
   const status = loaderData?.status;
   const navigate = useNavigate();

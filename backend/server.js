@@ -1,11 +1,20 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { Client, Databases, ID, Query } from 'node-appwrite';
+import { Client, Databases, ID, Query, Account } from 'node-appwrite';
 
 dotenv.config();
 const app = express();
-app.use(cors());
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
 
 const getAppwrite = () => {
@@ -16,23 +25,35 @@ const getAppwrite = () => {
 
   return {
     database: new Databases(client),
+    account: new Account(client)
   };
 };
 
 // 1. Get All Users
 app.get('/api/users', async (req, res) => {
-  const { limit = 10, offset = 0 } = req.query;
+  const { limit = 10 } = req.query;
   const { database } = getAppwrite();
+  
   try {
+    // Handle queries properly
+    const queries = isNaN(Number(limit)) ? [] : [Query.limit(Number(limit))];
+    
     const users = await database.listDocuments(
       process.env.APPWRITE_DATABASE_ID,
       process.env.APPWRITE_USERS_COLLECTION_ID,
-      [Query.limit(Number(limit)), Query.offset(Number(offset))]
+      queries.length > 0 ? queries : undefined // Critical fix - pass undefined for no queries
     );
-    res.json({ users: users.documents, total: users.total });
+    
+    res.json({ 
+      users: users.documents, 
+      total: users.total 
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to get users' });
+    console.error('Users error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get users',
+      details: error.message 
+    });
   }
 });
 
@@ -45,11 +66,30 @@ app.get('/api/user/:accountId', async (req, res) => {
     const result = await database.listDocuments(
       process.env.APPWRITE_DATABASE_ID,
       process.env.APPWRITE_USERS_COLLECTION_ID,
-      [Query.equal('accountId', accountId)]
+      [
+        Query.equal('accountId', accountId)
+      ]
     );
-    res.json(result.documents[0] || null);
+
+    if (!result.documents.length) {
+      return res.status(404).json(null);
+    }
+
+    const userDoc = result.documents[0];
+    res.json({
+      name: userDoc.name,
+      email: userDoc.email,
+      imageUrl: userDoc.imageUrl,
+      joinedAt: userDoc.joinedAt,
+      accountId: userDoc.accountId,
+      status: userDoc.status || "user"
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to get user' });
+    console.error('User error:', err);
+    res.status(500).json({ 
+      error: 'Failed to get user',
+      details: err.message 
+    });
   }
 });
 
@@ -88,13 +128,16 @@ app.patch('/api/user/:accountId/admin', async (req, res) => {
     const result = await database.listDocuments(
       process.env.APPWRITE_DATABASE_ID,
       process.env.APPWRITE_USERS_COLLECTION_ID,
-      [Query.equal('accountId', accountId)]
+      [
+        Query.equal('accountId', accountId)
+      ]
     );
 
-    if (result.documents.length === 0) return res.status(404).json({ error: 'User not found' });
+    if (!result.documents.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     const userDoc = result.documents[0];
-
     const updatedUser = await database.updateDocument(
       process.env.APPWRITE_DATABASE_ID,
       process.env.APPWRITE_USERS_COLLECTION_ID,
@@ -104,7 +147,11 @@ app.patch('/api/user/:accountId/admin', async (req, res) => {
 
     res.json(updatedUser);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update user to admin' });
+    console.error('Admin error:', err);
+    res.status(500).json({ 
+      error: 'Failed to update user to admin',
+      details: err.message 
+    });
   }
 });
 
@@ -117,17 +164,28 @@ app.get('/api/user/:accountId/status', async (req, res) => {
     const result = await database.listDocuments(
       process.env.APPWRITE_DATABASE_ID,
       process.env.APPWRITE_USERS_COLLECTION_ID,
-      [Query.equal('accountId', accountId), Query.select(['status'])]
+      [
+        Query.equal('accountId', accountId),
+        Query.select(['status'])
+      ]
     );
 
-    if (result.documents.length === 0) return res.status(404).json({ error: 'User not found' });
+    if (result.documents.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     res.json({ status: result.documents[0].status });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch status' });
+    res.status(500).json({ 
+      error: 'Failed to fetch status',
+      details: err.message 
+    });
   }
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Backend running on port ${process.env.PORT || 3000}`);
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log(`Backend running on port ${port}`);
+}).on('error', (err) => {
+  console.error('Server failed to start:', err);
 });

@@ -12,10 +12,14 @@ export const appwriteConfig = {
 };
 
 const client = new Client()
-.setEndpoint(appwriteConfig.endpointUrl)
-.setProject(appwriteConfig.projectId)
+  .setEndpoint(appwriteConfig.endpointUrl)
+  .setProject(appwriteConfig.projectId); // ❌ no .setKey() here!
+
+client.headers['X-Fallback-Cookies'] = '1'; // forces Appwrite to use cookies
 
 const account = new Account(client);
+
+
 const database = new Databases(client);
 const storage = new Storage(client);
 

@@ -81,15 +81,41 @@ export const logoutUser = async () => {
 
 export const getUser = async () => {
   try {
+    // First verify we have a valid session
+    const session = await account.getSession('current');
+    if (!session) {
+      console.log("No session found");
+      return null; // Return null instead of redirect
+    }
+
+    // Then get the user account
     const user = await account.get();
-    if (!user) return redirect("/sign-in");
+    console.log("Appwrite user:", user);
+    
+    if (!user) {
+      console.log("No user account found");
+      return null;
+    }
 
-    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${user.$id}`);
-    const userDoc = await res.json();
-
-    return userDoc || redirect("/sign-in");
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/user/${user.$id}`;
+    console.log("Making request to:", apiUrl);
+    
+    const res = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${session.secret}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!res.ok) {
+      console.error("API Error:", res.status, res.statusText);
+      return null;
+    }
+    
+    return await res.json();
+    
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Full Error:", error);
     return null;
   }
 };
