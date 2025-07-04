@@ -98,7 +98,6 @@ export const getUser = async () => {
 
     // Then get the user account
     const user = await account.get();
-    console.log("Appwrite user:", user);
     
     if (!user) {
       console.log("No user account found");
@@ -106,7 +105,6 @@ export const getUser = async () => {
     }
 
     const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/api/user/${user.$id}`;
-    console.log("Making request to:", apiUrl);
     
     const res = await fetch(apiUrl, {
       headers: {

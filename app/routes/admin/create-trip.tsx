@@ -67,7 +67,6 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
       return;
     }
     try {
-      console.log('Making request to /api/generate-trip');
       const response = await fetch("/api/generate-trip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,17 +81,13 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
         }),
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
+        console.error("Error response:", errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result: CreateTripResponse = await response.json();
-      console.log('Received result:', result);
 
       if (result?.id) navigate(`/trips/${result.id}`);
       else console.error("Failed to generate itinerary");

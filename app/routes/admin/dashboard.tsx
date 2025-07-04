@@ -32,7 +32,6 @@ import { tripXAxis, tripyAxis, userXAxis, useryAxis } from "~/constants";
 
 export const clientLoader = async () => {
   const user = await getUser();
-  console.log("User in dashboard loader:", user);
   if (!user || user.status !== "admin") {
     throw new Response("Forbidden", { status: 403 });
   }
