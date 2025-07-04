@@ -61,7 +61,8 @@ const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
     navigate("/sign-in");
   };
   const handleAdmin = async () => {
-    becomeAdmin();
+    await becomeAdmin();
+    window.location.reload();
   };
   return (
     <main className="min-h-screen flex flex-col">

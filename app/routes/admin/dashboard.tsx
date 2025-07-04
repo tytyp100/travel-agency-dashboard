@@ -1,4 +1,5 @@
 import React from "react";
+import "../../syncfusion-license";
 import { Header } from "../../components";
 import { TripCard, StatsCard } from "../../components";
 import { useLoaderData } from "react-router";
