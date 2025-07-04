@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { Client, Databases, ID, Query, Account } from 'node-appwrite';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 const app = express();
@@ -178,6 +179,127 @@ app.get('/api/user/:accountId/status', async (req, res) => {
   } catch (err) {
     res.status(500).json({ 
       error: 'Failed to fetch status',
+      details: err.message 
+    });
+  }
+});
+
+// 6. Generate Trip Itinerary
+app.post('/api/generate-trip', async (req, res) => {
+  const {
+    country,
+    numberOfDays,
+    travelStyle,
+    interests,
+    budget,
+    groupType,
+    userId
+  } = req.body;
+
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'Gemini API key not configured' });
+  }
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const unsplashApiKey = process.env.UNSPLASH_ACCESS_KEY;
+
+  try {
+    // Compose prompt
+    const prompt = `Generate a ${numberOfDays}-day travel itinerary for ${country} based on the following user information:
+    Budget: '${budget}'
+    Interests: '${interests}'
+    TravelStyle: '${travelStyle}'
+    GroupType: '${groupType}'
+    Return the itinerary and lowest estimated price in a clean, non-markdown JSON format with the following structure:
+    {
+    "name": "A descriptive title for the trip",
+    "description": "A brief description of the trip and its highlights not exceeding 100 words",
+    "estimatedPrice": "Lowest average price for the trip in USD, e.g.$1200",
+    "duration": ${numberOfDays},
+    "budget": "${budget}",
+    "travelStyle": "${travelStyle}",
+    "country": "${country}",
+    "interests": "${interests}",
+    "groupType": "${groupType}",
+    "bestTimeToVisit": [
+      "🌸 Season (from month to month): reason to visit",
+      "☀️ Season (from month to month): reason to visit",
+      "🍁 Season (from month to month): reason to visit",
+      "❄️ Season (from month to month): reason to visit"
+    ],
+    "weatherInfo": [
+      "☀️ Season: temperature range in Celsius (temperature range in Fahrenheit)",
+      "🌦️ Season: temperature range in Celsius (temperature range in Fahrenheit)",
+      "🌧️ Season: temperature range in Celsius (temperature range in Fahrenheit)",
+      "❄️ Season: temperature range in Celsius (temperature range in Fahrenheit)"
+    ],
+    "location": {
+      "city": "name of the city or region",
+      "coordinates": [latitude, longitude],
+      "openStreetMap": "link to open street map"
+    },
+    "itinerary": [
+    {
+      "day": 1,
+      "location": "City/Region Name",
+      "activities": [
+        {"time": "Morning", "description": "🏰 Visit the local historic castle and enjoy a scenic walk"},
+        {"time": "Afternoon", "description": "🖼️ Explore a famous art museum with a guided tour"},
+        {"time": "Evening", "description": "🍷 Dine at a rooftop restaurant with local wine"}
+      ]
+    }
+    ]
+    }`;
+
+    const textResult = await genAI
+      .getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+      .generateContent([prompt]);
+
+    let tripData;
+    try {
+      const responseText = textResult.response.text();
+      // Clean the response text to remove any markdown formatting
+      const cleanedText = responseText.replace(/```json\n?/, '').replace(/```\n?$/, '').trim();
+      tripData = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error('Error parsing Gemini response:', parseError);
+      return res.status(500).json({ error: 'Failed to parse AI response' });
+    }
+
+    // Fetch images from Unsplash
+    let imageUrls = [];
+    if (unsplashApiKey) {
+      try {
+        const unsplashRes = await fetch(
+          `https://api.unsplash.com/search/photos?query=${country} ${interests} ${travelStyle}&client_id=${unsplashApiKey}&per_page=3`
+        );
+        const unsplashData = await unsplashRes.json();
+        imageUrls = unsplashData.results?.slice(0, 3)
+          .map(result => result.urls?.regular)
+          .filter(url => url) || [];
+      } catch (unsplashError) {
+        console.error('Error fetching images from Unsplash:', unsplashError);
+        // Continue without images if Unsplash fails
+      }
+    }
+
+    // If no images from Unsplash, use placeholder images
+    if (imageUrls.length === 0) {
+      imageUrls = [
+        'https://via.placeholder.com/600x400/4F46E5/FFFFFF?text=Travel+Destination',
+        'https://via.placeholder.com/600x400/059669/FFFFFF?text=Adventure+Awaits',
+        'https://via.placeholder.com/600x400/DC2626/FFFFFF?text=Explore+More'
+      ];
+    }
+
+    res.json({
+      trip: tripData,
+      imageUrls
+    });
+  } catch (err) {
+    console.error("Trip generation error:", err);
+    res.status(500).json({ 
+      error: "Trip generation failed", 
       details: err.message 
     });
   }

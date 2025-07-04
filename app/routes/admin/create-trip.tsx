@@ -56,8 +56,9 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
       return;
     }
     if (formData.duration < 1 || formData.duration > 10) {
-      setError("Duratoin must be between 1 and 10 days");
+      setError("Duration must be between 1 and 10 days");
       setLoading(false);
+      return;
     }
     const user = await account.get();
     if (!user.$id) {
@@ -66,7 +67,8 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
       return;
     }
     try {
-      const response = await fetch("/api/create-trip", {
+      console.log('Making request to /api/generate-trip');
+      const response = await fetch("/api/generate-trip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -80,7 +82,17 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
         }),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result: CreateTripResponse = await response.json();
+      console.log('Received result:', result);
 
       if (result?.id) navigate(`/trips/${result.id}`);
       else console.error("Failed to generate itinerary");
