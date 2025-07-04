@@ -5,6 +5,7 @@ import {
   logoutUser,
   becomeAdmin,
   displayStatus,
+  storeUserData,
 } from "~/appwrite/auth";
 
 type User = {
@@ -22,15 +23,19 @@ type LoaderData = {
 
 export const clientLoader = async () => {
   try {
+    console.log("PageLayout loader: Starting...");
     const userData = await getUser();
+    console.log("PageLayout loader: userData received:", userData);
 
     // Handle redirect case
     if (userData && typeof userData === "object" && userData.redirect) {
+      console.log("PageLayout loader: Redirecting to:", userData.redirect);
       return redirect(userData.redirect);
     }
 
     // Handle successful user data
     if (userData && userData.accountId) {
+      console.log("PageLayout loader: User data found, returning user");
       return {
         user: {
           name: userData.name,
@@ -43,10 +48,36 @@ export const clientLoader = async () => {
       };
     }
 
+    // If no user data, try to store user data for first-time users
+    console.log(
+      "PageLayout loader: No user data, attempting to store user data"
+    );
+    const storedUser = await storeUserData();
+    console.log("PageLayout loader: storedUser result:", storedUser);
+
+    if (storedUser && storedUser.accountId) {
+      console.log(
+        "PageLayout loader: User data stored successfully, returning user"
+      );
+      return {
+        user: {
+          name: storedUser.name,
+          email: storedUser.email,
+          imageUrl: storedUser.imageUrl,
+          joinedAt: storedUser.joinedAt,
+          accountId: storedUser.accountId,
+        },
+        status: storedUser.status || "user",
+      };
+    }
+
     // Fallback to sign-in if no valid data
+    console.log(
+      "PageLayout loader: No valid user data, redirecting to sign-in"
+    );
     return redirect("/sign-in");
   } catch (error) {
-    console.error("Loader error:", error);
+    console.error("PageLayout loader error:", error);
     return redirect("/sign-in");
   }
 };
@@ -56,14 +87,28 @@ const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
   const user = loaderData?.user;
   const status = loaderData?.status;
   const navigate = useNavigate();
+
   const handleLogout = async () => {
     await logoutUser();
     navigate("/sign-in");
   };
+
   const handleAdmin = async () => {
     await becomeAdmin();
     window.location.reload();
   };
+
+  // Show loading state if user data is missing
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen flex flex-col">
       {/* Setting full background image */}
