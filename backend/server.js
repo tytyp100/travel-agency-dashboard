@@ -292,7 +292,22 @@ app.post('/api/generate-trip', async (req, res) => {
       ];
     }
 
+    // Store the trip in the database
+    const { database } = getAppwrite();
+    const tripDocument = await database.createDocument(
+      process.env.APPWRITE_DATABASE_ID,
+      process.env.APPWRITE_TRIPS_COLLECTION_ID,
+      ID.unique(),
+      {
+        tripDetail: JSON.stringify(tripData),
+        createdAt: new Date().toISOString(),
+        imageUrls: imageUrls,
+        userId: userId
+      }
+    );
+
     res.json({
+      id: tripDocument.$id,
       trip: tripData,
       imageUrls
     });
