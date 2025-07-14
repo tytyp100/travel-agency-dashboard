@@ -141,10 +141,10 @@ const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
           {/* Centered Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/trips")}
               className="bg-white text-black px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-200 transition"
             >
-              Go to Dashboard
+              Get Started
             </button>
             <button
               onClick={handleAdmin}

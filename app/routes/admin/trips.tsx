@@ -1,4 +1,5 @@
 import React from "react";
+import "../../syncfusion-license";
 import { Header } from "../../components";
 import { getAllTrips, getTripById } from "~/appwrite/trips";
 import { parseTripData } from "~/lib/utils";

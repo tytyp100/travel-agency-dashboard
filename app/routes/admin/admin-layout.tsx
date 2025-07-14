@@ -7,7 +7,7 @@ import { redirect } from "react-router";
 import { getExistingUser, storeUserData } from "~/appwrite/auth";
 import type { Models } from "appwrite";
 
-export async function clientLoader() {
+export async function clientLoader({ request }: { request: Request }) {
   try {
     const user = await account.get();
     if (!user.$id) {
@@ -25,9 +25,23 @@ export async function clientLoader() {
       existingUser = newUser;
     }
 
+    // Get the current pathname from the request URL
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
+    // Define which routes regular users can access
+    const userAccessibleRoutes = ["/trips", "/trips/create"];
+    const isUserAccessibleRoute = userAccessibleRoutes.some(
+      (route) => pathname === route || pathname.startsWith("/trips/")
+    );
+
     // Now check status - this ensures we check even after creating a new user
     if (!existingUser || existingUser.status === "user") {
-      return redirect("/");
+      // If user is accessing a non-accessible route, redirect to trips
+      if (!isUserAccessibleRoute) {
+        console.log("Redirecting non-admin user to /trips");
+        return redirect("/trips");
+      }
     }
 
     return existingUser;
