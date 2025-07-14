@@ -135,23 +135,18 @@ const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
             personalized travel plans using AI!`}
           </p>
           <p className="mb-6 text-lg">
-            {`You are currently logged in as a ${status}! You may access the dashboard if you are an admin.`}
+            {`You are currently logged in as a ${status}! You may only access the dashboard and user info if you are an admin.`}
           </p>
 
           {/* Centered Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate("/trips")}
-              className="bg-white text-black px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-200 transition"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
             >
               Get Started
             </button>
-            <button
-              onClick={handleAdmin}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-            >
-              Become Admin
-            </button>
+
             <button
               onClick={handleLogout}
               className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-red-700 transition"
