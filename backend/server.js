@@ -13,7 +13,13 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: [
+    process.env.FRONTEND_URL || "http://localhost:5173", // Development
+    "http://localhost:3000", // Production build local
+    "http://localhost:5174", // Alternative dev port
+    // Add your EC2 public IP when you deploy
+    // "http://your-ec2-public-ip:3000", // EC2 Production
+  ],
   credentials: true
 }));
 app.use(express.json());

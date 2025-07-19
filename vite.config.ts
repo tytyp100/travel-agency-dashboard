@@ -11,6 +11,36 @@ export default defineConfig({
   define: {
     'process.env.VITE_FRONTEND_URL': JSON.stringify(process.env.VITE_FRONTEND_URL)
   },
+  build: {
+    chunkSizeWarningLimit: 1000, // Increase warning limit for Syncfusion components
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate Syncfusion components into their own chunks
+          'syncfusion-charts': [
+            '@syncfusion/ej2-react-charts',
+            '@syncfusion/ej2-charts'
+          ],
+          'syncfusion-grids': [
+            '@syncfusion/ej2-react-grids',
+            '@syncfusion/ej2-grids'
+          ],
+          'syncfusion-navigation': [
+            '@syncfusion/ej2-react-navigations',
+            '@syncfusion/ej2-navigations'
+          ],
+          'syncfusion-dropdowns': [
+            '@syncfusion/ej2-react-dropdowns',
+            '@syncfusion/ej2-dropdowns'
+          ],
+          'syncfusion-maps': [
+            '@syncfusion/ej2-react-maps',
+            '@syncfusion/ej2-maps'
+          ]
+        }
+      }
+    }
+  },
   server: {
     proxy: {
       '/api': {

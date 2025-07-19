@@ -6,7 +6,17 @@
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "react-router typegen && tsc",
+    "build:backend": "cd backend && npm run build",
+    "start:backend": "cd backend && npm start",
+    "build:all": "npm run build && npm run build:backend",
+    "start:prod": "concurrently \"npm run start:backend\" \"npm start\"",
+    "preview": "npm run build && npm start",
+    "deploy": "pm2 start ecosystem.config.js",
+    "deploy:stop": "pm2 stop ecosystem.config.js",
+    "deploy:restart": "pm2 restart ecosystem.config.js",
+    "deploy:reload": "pm2 reload ecosystem.config.js",
+    "deploy:logs": "pm2 logs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -38,6 +48,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/react-router-dom": "^5.3.3",
+    "concurrently": "^9.2.0",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
