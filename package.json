@@ -5,7 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "node server-wrapper.js",
     "typecheck": "react-router typegen && tsc",
     "build:backend": "cd backend && npm run build",
     "start:backend": "cd backend && npm start",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@react-router/express": "^7.5.3",
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
     "@syncfusion/ej2-base": "^29.2.4",

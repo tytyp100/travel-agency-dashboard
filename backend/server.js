@@ -18,7 +18,7 @@ app.use(cors({
     "http://localhost:3000", // Production build local
     "http://localhost:5174", // Alternative dev port
     // Add your EC2 public IP when you deploy
-    // "http://your-ec2-public-ip:3000", // EC2 Production
+    "http://3.129.92.159:3000", // EC2 Production - REPLACE WITH YOUR IP
   ],
   credentials: true
 }));

@@ -55,8 +55,8 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
       setLoading(false);
       return;
     }
-    if (formData.duration < 1 || formData.duration > 10) {
-      setError("Duration must be between 1 and 10 days");
+    if (formData.duration < 1 || formData.duration > 13) {
+      setError("Duration must be between 1 and 12 days");
       setLoading(false);
       return;
     }
@@ -67,19 +67,22 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
       return;
     }
     try {
-      const response = await fetch("/api/generate-trip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          country: formData.country,
-          numberOfDays: formData.duration,
-          travelStyle: formData.travelStyle,
-          interests: formData.interest,
-          budget: formData.budget,
-          groupType: formData.groupType,
-          userId: user.$id,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/generate-trip`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            country: formData.country,
+            numberOfDays: formData.duration,
+            travelStyle: formData.travelStyle,
+            interests: formData.interest,
+            budget: formData.budget,
+            groupType: formData.groupType,
+            userId: user.$id,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();

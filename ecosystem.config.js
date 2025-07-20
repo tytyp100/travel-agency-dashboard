@@ -1,9 +1,9 @@
-module.exports = {
+export default {
   apps: [
     {
       name: 'travel-agency-backend',
       script: 'backend/server.js',
-      cwd: '/home/ec2-user/travel-agency-dashboard', // Update this path
+      cwd: '/home/ec2-user/travel-agency', 
       env: {
         NODE_ENV: 'production',
         PORT: 3001
@@ -21,7 +21,7 @@ module.exports = {
       name: 'travel-agency-frontend',
       script: 'npm',
       args: 'start',
-      cwd: '/home/ec2-user/travel-agency-dashboard', // Update this path
+      cwd: '/home/ec2-user/travel-agency', 
       env: {
         NODE_ENV: 'production',
         PORT: 3000
