@@ -2,6 +2,7 @@ import { ButtonComponent } from "@syncfusion/ej2-react-buttons";
 import { Link, redirect } from "react-router";
 import { account } from "~/appwrite/client";
 import { loginWithGoogle } from "~/appwrite/auth";
+import "../../syncfusion-license";
 
 //Loader function which fetches data before the UI loaded to make it seem faster
 export async function clientLoader() {
