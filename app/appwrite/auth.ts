@@ -5,6 +5,18 @@ import { redirect } from "react-router";
 export const getExistingUser = async (id: string) => {
   try {
     const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user/${id}`);
+    
+    // Handle 404 - user doesn't exist yet
+    if (res.status === 404) {
+      return null;
+    }
+    
+    // Handle other errors
+    if (!res.ok) {
+      console.error(`API Error: ${res.status} ${res.statusText}`);
+      return null;
+    }
+    
     return await res.json();
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -112,6 +124,12 @@ export const getUser = async () => {
         'Content-Type': 'application/json'
       }
     });
+    
+    // Handle 404 - user doesn't exist in our database yet (new user)
+    if (res.status === 404) {
+      console.log("User not found in database - new user detected");
+      return null; // This will trigger storeUserData in the calling code
+    }
     
     if (!res.ok) {
       console.error("API Error:", res.status, res.statusText);

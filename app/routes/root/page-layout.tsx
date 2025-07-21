@@ -5,6 +5,7 @@ import {
   logoutUser,
   becomeAdmin,
   displayStatus,
+  storeUserData,
 } from "~/appwrite/auth";
 
 type User = {
@@ -43,7 +44,24 @@ export const clientLoader = async () => {
       };
     }
 
-    // Fallback to sign-in if no valid data
+    // No user data found - try to create new user
+    console.log("No user data found, attempting to store new user");
+    const newUser = await storeUserData();
+    
+    if (newUser && newUser.accountId) {
+      return {
+        user: {
+          name: newUser.name,
+          email: newUser.email,
+          imageUrl: newUser.imageUrl,
+          joinedAt: newUser.joinedAt,
+          accountId: newUser.accountId,
+        },
+        status: newUser.status || "user",
+      };
+    }
+
+    // Fallback to sign-in if user creation failed
     return redirect("/sign-in");
   } catch (error) {
     console.error("Loader error:", error);
@@ -52,7 +70,6 @@ export const clientLoader = async () => {
 };
 
 const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
-  console.log("Full loaderData:", JSON.stringify(loaderData, null, 2));
   const user = loaderData?.user;
   const status = loaderData?.status;
   const navigate = useNavigate();
@@ -95,16 +112,10 @@ const PageLayout = ({ loaderData }: { loaderData: LoaderData }) => {
           {/* Centered Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => navigate("/dashboard")}
-              className="bg-white text-black px-6 py-3 rounded-lg font-semibold shadow hover:bg-gray-200 transition"
-            >
-              Go to Dashboard
-            </button>
-            <button
-              onClick={handleAdmin}
+              onClick={() => navigate("/trips")}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
             >
-              Become Admin
+              Get Started
             </button>
             <button
               onClick={handleLogout}
