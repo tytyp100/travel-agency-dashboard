@@ -12,7 +12,14 @@ export async function clientLoader() {
       return redirect("/");
     }
   } catch (e) {
+    // Enhanced logging for Safari debugging
     console.log("Error fetching user ", e);
+    if (e instanceof TypeError && e.message.includes("fetch")) {
+      console.error(
+        "Network error - possible CORS or connectivity issue in Safari:",
+        e
+      );
+    }
   }
 }
 

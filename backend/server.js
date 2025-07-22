@@ -12,6 +12,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Safari compatibility headers
+app.use((req, res, next) => {
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'DENY');
+  res.header('X-XSS-Protection', '1; mode=block');
+  res.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 app.use(cors({
   origin: [
     process.env.FRONTEND_URL || "http://localhost:5173", // Development
@@ -20,7 +29,10 @@ app.use(cors({
     // Add your EC2 public IP when you deploy
     "http://3.129.92.159:3000", // EC2 Production - REPLACE WITH YOUR IP
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // Safari compatibility
 }));
 app.use(express.json());
 

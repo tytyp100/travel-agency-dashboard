@@ -8,8 +8,29 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Safari compatibility middleware
+app.use((req, res, next) => {
+  // Set proper MIME types for Safari
+  if (req.path.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  } else if (req.path.endsWith('.css')) {
+    res.setHeader('Content-Type', 'text/css; charset=utf-8');
+  }
+  
+  // Safari cache headers
+  res.setHeader('Cache-Control', 'public, max-age=31536000');
+  res.setHeader('Vary', 'Accept-Encoding');
+  
+  next();
+});
+
 // Serve static assets from build/client
 app.use('/assets', express.static(path.join(__dirname, 'build/client/assets')));
+
+// Handle favicon requests
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).send(); // No content response
+});
 
 // Serve other static files (like favicon, images, etc.)
 app.use(express.static(path.join(__dirname, 'build/client'), {
